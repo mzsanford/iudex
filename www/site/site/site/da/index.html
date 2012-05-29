@@ -1,0 +1,97 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en-us">
+<head>
+   <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+   <title>Iūdex DA</title>
+   <link rel="start" href="/" />
+  
+
+  <!-- No atom yet:
+  <link rel="alternate" type="application/atom+xml" href="/atom.xml" title="feed"/>
+  -->
+
+  <link rel="stylesheet" href="../css/syntax.css" type="text/css"/>
+
+  <link rel="stylesheet" href="../css/screen.css" type="text/css"/>
+</head>
+
+<body id="">
+
+<div id="site">
+
+  <div id="header">
+  <span class="nlink" ><a href="../index.html" title="Iūdex">Iūdex</a> ⇒</span>
+  <span class="ptitle">DA</span>
+</div>
+
+<div id="sub">
+  <h1 id="data-access">Data Access</h1>
+
+<p>Iūdex maintains state on all content to be processed in persisent
+storage. This includes all <a href="../prioritization.html">prioritization</a> data. The current
+implementation makes direct use PostgreSQL including unique features:</p>
+
+<ul>
+  <li>A PostgreSQL-based content summary data store</li>
+  <li>A politeness-aware persistent priority queue using SQL:2003
+Window Functions (PostgreSQL 8.4)</li>
+  <li>JRuby/ActiveRecord based schema definition and migrations</li>
+  <li>A high performance thread-safe Java JDBC-based and extensible Data
+Access Layer</li>
+</ul>
+
+<p>Care has been taken to isolate all PostgreSQL dependencies to the
+iudex-da package. This should make it possible to experiment with
+alternatives such as fully distributed <em>NoSQL</em> stores in the future.</p>
+
+<h2 id="postgresql-setup">Postgresql Setup</h2>
+
+<p>Postgresql should be setup with localhost trust access for the “iudex”
+user (which need not itself have superuser credentials.) An
+“iudex_test” database is used by tests and is the default for all
+execution. Setup:</p>
+
+<pre><code>% createuser iudex
+% createdb iudex_test -O iudex
+% iudex-migrate
+</code></pre>
+
+<p>If starting from a source tree, you will need to migrate the test
+database before being able to build the iudex-da gem. The migration
+can be run directly from the source tree:</p>
+
+<pre><code>% ./iudex-da/bin/iudex-migrate
+</code></pre>
+
+<h2 id="dependencies">Dependencies</h2>
+
+<p>Additional external dependencies:</p>
+
+<div class="svg-object">
+  <object data="../svg/iudex-da.svg" type="image/svg+xml" width="499" height="195">
+    <img src="../svg/iudex-da.png" width="499" height="195" />
+  </object>
+</div>
+
+
+</div>
+
+
+  <div id="footer">
+  <address>
+    <span class="copyright">
+      Copyright &copy; 2008-now
+      <a href="http://gravitext.com/">David Kellum</a>
+    </span>
+    <span class="engine">
+      Powered by
+      <a href="http://github.com/mojombo/jekyll/" title="A static, minimalist CMS">Jekyll</a>
+    </span>
+  </address>
+  </div>
+</div>
+
+</body>
+</html>
