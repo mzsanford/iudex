@@ -40,12 +40,52 @@ task :server => [ :dot ] do
   load Gem.bin_path( 'jekyll', 'jekyll' )
 end
 
-DEST="~/public_html/iudex"
+DEST = File.expand_path("~/public_html/iudex")
 
-task :diff => [ :gen ]  do
+task :prep_dest do
+  FileUtils.mkdir_p DEST
+end
+
+desc "Publish any changes to #{DEST}"
+task :diff => [ :gen, :prep_dest ]  do
   sh "rsync -n -rc -i _site/ #{DEST}"
 end
 
-task :publish => [ :gen ] do
+desc "Publish HTML docs to #{DEST}"
+task :publish => [ :gen, :prep_dest ] do
   sh "rsync -rc -i _site/ #{DEST}"
+end
+
+PRE_PUBLISH_BRANCH = `git branch`.split(/\n/).grep(/^\*/)[0].split.last
+namespace :gh_pages do
+  task :check_dirty do
+    unless system 'git', 'diff', '--quiet', 'HEAD'
+      abort "Aborted: you have uncommitted changes"
+    end
+  end
+
+  task :switch => [:check_dirty] do
+    sh "git checkout gh-pages"
+  end
+  
+  task :generate => [ :"gh_pages:switch", :gen] do
+    sh "git add _site"
+    sh "git commit -m 'Publish HTML docs to GitHub'"
+  end
+  
+  task :push do
+    sh "git push origin gh-pages"
+    sh "git checkout #{PRE_PUBLISH_BRANCH}"
+  end
+end
+
+namespace :publish do
+  desc "Publish HTML docs to GitHub"
+  task :github do
+    puts "Switch branches"
+    puts "Generate"
+    puts "Checkin"
+    puts "Push"
+    puts "Swithc back"
+  end
 end
