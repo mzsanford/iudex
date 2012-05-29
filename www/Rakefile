@@ -69,6 +69,8 @@ namespace :gh_pages do
   end
   
   task :generate => [:switch, :gen] do
+    # Remove and re-publish fresh
+    rm_rf 'site'
     sh 'mv _site site'
     sh 'cp -R svg site/svg'
     sh "git add site"
