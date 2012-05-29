@@ -70,6 +70,7 @@ namespace :gh_pages do
   
   task :generate => [:switch, :gen] do
     sh 'mv _site site'
+    sh 'cp -R svg site/svg'
     sh "git add site"
     sh "git commit -m 'Publish HTML docs to GitHub'"
   end
