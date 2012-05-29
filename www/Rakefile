@@ -69,6 +69,7 @@ namespace :gh_pages do
   end
   
   task :generate => [:switch, :gen] do
+    sh 'sed -i -e "/^_site/d" .gitignore'
     sh "git add _site"
     sh "git commit -m 'Publish HTML docs to GitHub'"
   end
