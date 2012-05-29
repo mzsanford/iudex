@@ -65,7 +65,7 @@ namespace :gh_pages do
   end
 
   task :switch => [:check_dirty] do
-    sh "git checkout -b gh-pages"
+    sh "git checkout gh-pages"
   end
   
   task :generate => [:switch, :gen] do
