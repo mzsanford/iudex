@@ -68,7 +68,7 @@ namespace :gh_pages do
     sh "git checkout gh-pages"
   end
   
-  task :generate => [ :"gh_pages:switch", :gen] do
+  task :generate => [:switch, :gen] do
     sh "git add _site"
     sh "git commit -m 'Publish HTML docs to GitHub'"
   end
@@ -81,11 +81,5 @@ end
 
 namespace :publish do
   desc "Publish HTML docs to GitHub"
-  task :github do
-    puts "Switch branches"
-    puts "Generate"
-    puts "Checkin"
-    puts "Push"
-    puts "Swithc back"
-  end
+  task :github => ["gh_pages:generate", "gh_pages:push"]
 end
