@@ -1,0 +1,142 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en-us">
+<head>
+   <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+   <title>Iūdex Scalability and Fault Tolerance</title>
+   <link rel="start" href="/" />
+  
+
+  <!-- No atom yet:
+  <link rel="alternate" type="application/atom+xml" href="/atom.xml" title="feed"/>
+  -->
+
+  <link rel="stylesheet" href="./css/syntax.css" type="text/css"/>
+
+  <link rel="stylesheet" href="./css/screen.css" type="text/css"/>
+</head>
+
+<body id="">
+
+<div id="site">
+
+  <div id="header">
+  <span class="nlink" ><a href="./index.html" title="Iūdex">Iūdex</a> ⇒</span>
+  <span class="ptitle">Scalability and Fault Tolerance</span>
+</div>
+
+<div id="sub">
+  <h2 id="fault-tolerance">Fault Tolerance</h2>
+
+<p>The <em>primary</em> source of web content state is the web itself. Subject
+to certain limitations, if iudex-worker BARC output or visit database
+state is lost due to hardware failure, it may be recovered by bringing
+a new worker online from a previous backup and allowing it to catch up
+to the current state of the web. The most significant limitation to
+recovering state is the length of time that feeds retain references to
+content.  Since some, generally higher volume new feeds, keep articles
+referenced for only a few days, daily backups and intervention times on
+the order of one day should be sufficient.</p>
+
+<h3 id="general-recommendations">General Recommendations</h3>
+
+<ul>
+  <li>Backup visit database(s) at least once per day (or continuously via
+Postgres Warm Standby/PITR)</li>
+  <li>Write completed BARC files to redundant storage (i.e. Amazon S3,
+HDFS, etc.)</li>
+</ul>
+
+<p><em>TODO</em>: Open BARC files would presumably be lost on iudex-worker failure
+since they would not yet be written to redundant storage. A utility
+should be written to validate BARC state against the visit database
+and mark lost writes accordingly (i.e. schedule new visit.) The
+alternative would be to support streaming/synchronous BARC writes to
+redundant storage. But this would likely be costly.</p>
+
+<h2 id="scalability">Scalability</h2>
+
+<h3 id="host-partitioning">Host Partitioning</h3>
+
+<p>Partitioning the visit queue on URL-extracted hosts (i.e. hash of host
+name modulo number of partitions) allows some content uniqueness and
+host politeness concerns to be localized to a single iudex-worker
+instance.</p>
+
+<p>Note however that HTTP redirects are in common-usage with web feeds,
+including redirects that span hosts. For example, a feed hosted at
+feedburner.google.com may advertise new content at URLs of host
+feedburner.google.com (for tracking, etc.). When accessed however
+these URLs redirect to original publisher URLs on a different host,
+i.e. “gravitext.com.”</p>
+
+<h2 id="distribution-models">Distribution Models</h2>
+
+<p>The following distribution models have implications for both
+scalability and fault tolerance.</p>
+
+<h3 id="single-database-and-worker">Single database and worker</h3>
+
+<p>The simplest model is a single visit database and worker pair:</p>
+
+<div class="svg-object">
+  <object data="svg/distribute-single.svg" type="image/svg+xml" width="326" height="96">
+    <img src="svg/distribute-single.png" width="326" height="96" />
+  </object>
+</div>
+
+<p><em>TODO</em>: this is the only model currently supported.</p>
+
+<p>The visit database and iudex-worker may be on the same host (lowest
+latency access) or different hosts (more resources for
+potentially greater throughput.)</p>
+
+<h3 id="centralized-database-with-multiple-workers">Centralized database with multiple workers</h3>
+
+<p>In this model the visit database remains a centralized single instance,
+but additional iudex-worker instances are introduced:</p>
+
+<div class="svg-object">
+  <object data="svg/distribute-central.svg" type="image/svg+xml" width="331" height="96">
+    <img src="svg/distribute-central.png" width="331" height="96" />
+  </object>
+</div>
+
+<p>When polling work, each iudex-worker selects only visit URLs with
+hosts matching its unique hash offset. However, all discovered URLs
+(references from feeds, etc.) are updated in the central
+database. Thus the visit database itself provides the mechanism for a
+feed processed by iudex-worker-1 to reference content that will be
+hashed to, and eventually polled and processed by iudex-worker-2.</p>
+
+<h3 id="partitioned-databases-and-workers">Partitioned databases and workers</h3>
+
+<div class="svg-object">
+  <object data="svg/distribute-partitioned.svg" type="image/svg+xml" width="324" height="240">
+    <img src="svg/distribute-partitioned.png" width="324" height="240" />
+  </object>
+</div>
+
+<p>Note that combinations of the multiple workers and partitioned
+(share-nothing) models are also possible.</p>
+
+</div>
+
+
+  <div id="footer">
+  <address>
+    <span class="copyright">
+      Copyright &copy; 2008-now
+      <a href="http://gravitext.com/">David Kellum</a>
+    </span>
+    <span class="engine">
+      Powered by
+      <a href="http://github.com/mojombo/jekyll/" title="A static, minimalist CMS">Jekyll</a>
+    </span>
+  </address>
+  </div>
+</div>
+
+</body>
+</html>
