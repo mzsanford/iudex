@@ -65,17 +65,23 @@ namespace :gh_pages do
   end
 
   task :switch => [:check_dirty] do
-    sh "git checkout -b gh-pages"
+    sh "git checkout gh-pages"
+    sh "git merge #{PRE_PUBLISH_BRANCH}"
   end
   
   task :generate => [:switch, :gen] do
-    sh "git add _site"
+    # Remove and re-publish fresh
+    rm_rf 'site'
+    sh 'mv _site site'
+    sh 'cp -R svg/ site'
+    sh "git add site"
     sh "git commit -m 'Publish HTML docs to GitHub'"
   end
   
   task :push do
     sh "git push origin gh-pages"
     sh "git checkout #{PRE_PUBLISH_BRANCH}"
+    sh "rm -rf site"
   end
 end
 
