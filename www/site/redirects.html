@@ -1,0 +1,144 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en-us">
+<head>
+   <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+   <title>Iūdex Redirect Processing</title>
+   <link rel="start" href="/" />
+  
+
+  <!-- No atom yet:
+  <link rel="alternate" type="application/atom+xml" href="/atom.xml" title="feed"/>
+  -->
+
+  <link rel="stylesheet" href="./css/syntax.css" type="text/css"/>
+
+  <link rel="stylesheet" href="./css/screen.css" type="text/css"/>
+</head>
+
+<body id="">
+
+<div id="site">
+
+  <div id="header">
+  <span class="nlink" ><a href="./index.html" title="Iūdex">Iūdex</a> ⇒</span>
+  <span class="ptitle">Redirect Processing</span>
+</div>
+
+<div id="sub">
+  <p>Iūdex 1.0 supported only an <code>HTTPClient</code> <em>internal</em> redirect mode,
+where the URL change was recorded by the <code>ContentFetcher</code>. Iūdex 1.1+
+adds support for an <em>external</em> redirect mode, where:</p>
+
+<ul>
+  <li>The <code>HTTPClient</code> implementation and <code>ContentFetcher</code> filter returns
+the redirect status and <code>Location</code> header (does not follow).</li>
+  <li>A <code>RedirectHandler</code> filter resolves the redirect <code>Location</code>, and
+applies it to a new <code>REVISIT_ORDER</code> cloned from order.</li>
+  <li>A <code>Revisitor</code> filter adds <code>REVISIT_ORDER</code> back into the <code>VisitQueue</code>.</li>
+</ul>
+
+<p>This approach offers fine-grain filter-based control of the entire
+redirect process, including the opportunity for early termination. In
+addition, it gives the <code>VisitQueue</code> and <code>VisitManager</code> exclusive
+control over host politeness constraints.</p>
+
+<h2 id="sample-redirect-scenario">Sample Redirect Scenario</h2>
+
+<p>Consider the following sequence of redirects:</p>
+
+<div class="svg-object">
+  <object data="svg/redirect_sample.svg" type="image/svg+xml" width="581" height="59">
+    <img src="svg/redirect_sample.png" width="581" height="59" />
+  </object>
+</div>
+
+<p>The sections below give the processing sequence with <code>UniMap</code> order states.</p>
+
+<h3 id="first-order-redirect">First order redirect</h3>
+
+<p>Starting with the initial order:</p>
+
+<div class="svg-object">
+  <object data="svg/redirect_orders_0.svg" type="image/svg+xml" width="141" height="91">
+    <img src="svg/redirect_orders_0.png" width="141" height="91" />
+  </object>
+</div>
+
+<p>A 302 status is returned from the <code>ContentFetcher</code>. The
+<code>RedirectHandler</code> creates a <code>REVISIT_ORDER</code>, and adjusts <code>LAST</code>,
+<code>REFERER</code>, and <code>REFERENT</code> values as shown:</p>
+
+<div class="svg-object">
+  <object data="svg/redirect_orders_0a.svg" type="image/svg+xml" width="320" height="252">
+    <img src="svg/redirect_orders_0a.png" width="320" height="252" />
+  </object>
+</div>
+
+<p>Note that <code>PRIORITY</code> is also increased by a fixed per-redirect value
+(configurable, 0.5 default), representing the value of work conducted
+thus far and prioritizing the redirect over existing queued work.</p>
+
+<p>The <code>Revisitor</code> then removes <code>REVISIT_ORDER</code>, submits it to the
+<code>VisitQueue</code> (<code>VisitCounter</code> interface, via <code>VisitManager</code>), and
+terminates the current filter chain.</p>
+
+<h3 id="second-order-redirect">Second order redirect</h3>
+
+<p>The <em>revisit</em> order from above then becomes the next <em>order</em>:</p>
+
+<div class="svg-object">
+  <object data="svg/redirect_orders_1.svg" type="image/svg+xml" width="320" height="251">
+    <img src="svg/redirect_orders_1.png" width="320" height="251" />
+  </object>
+</div>
+
+<p>A second, 301 redirect is returned and the <code>RedirectHandler</code> applied:</p>
+
+<div class="svg-object">
+  <object data="svg/redirect_orders_1a.svg" type="image/svg+xml" width="499" height="305">
+    <img src="svg/redirect_orders_1a.png" width="499" height="305" />
+  </object>
+</div>
+
+<h3 id="third-order">Third order</h3>
+
+<p>Again, the above <em>revisit</em> order becomes the next <em>order</em>.  Finally, a
+200 status is returned and the <code>RedirectHandler</code> applies no further
+changes:</p>
+
+<div class="svg-object">
+  <object data="svg/redirect_orders_2.svg" type="image/svg+xml" width="499" height="265">
+    <img src="svg/redirect_orders_2.png" width="499" height="265" />
+  </object>
+</div>
+
+<p>Similarly, the <code>Revisitor</code> finds no <code>REDIRECT_ORDER</code> and passes. Note
+that:</p>
+
+<ul>
+  <li>The redirect path can be walked in reverse by following <code>LAST</code> references.</li>
+  <li><code>REFERER</code> always points to the beginning (first redirect) of the series.</li>
+  <li><code>REFERENT</code> always points to the end of the series.</li>
+</ul>
+
+</div>
+
+
+  <div id="footer">
+  <address>
+    <span class="copyright">
+      Copyright &copy; 2008-now
+      <a href="http://gravitext.com/">David Kellum</a>
+    </span>
+    <span class="engine">
+      Powered by
+      <a href="http://github.com/mojombo/jekyll/" title="A static, minimalist CMS">Jekyll</a>
+    </span>
+  </address>
+  </div>
+</div>
+
+</body>
+</html>
